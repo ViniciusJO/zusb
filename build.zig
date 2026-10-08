@@ -12,6 +12,8 @@ pub fn build(b: *std.Build) !void {
         .target = target,
         .optimize = optimize,
     });
+    // TODO: verify
+    const libusb_mod = libusb.addModule("libusb");
 
     const zusb_mod = b.addModule("zusb", .{
         .root_source_file = b.path("zusb.zig"),
@@ -29,7 +31,7 @@ pub fn build(b: *std.Build) !void {
         .target = target,
         .optimize = optimize,
         .imports = &.{
-            .{ .name = "libusb", .module = libusb.createModule() },
+            .{ .name = "libusb", .module = libusb_mod },
             .{ .name = "zusb", .module = zusb_mod },
         },
     });

@@ -10,18 +10,18 @@ pub fn deinit(self: Self) void {
     _ = clibusb.libusb_free_config_descriptor(self.descriptor);
 }
 
-pub fn interfaces(self: Self) Interfaces {
-    return Interfaces{
+pub fn interfaces(self: Self) InterfaceIterator {
+    return InterfaceIterator{
         .interfaces = self.descriptor.*.interface[0..self.descriptor.*.bNumInterfaces],
         .i = 0,
     };
 }
 
-pub const Interfaces = struct {
+pub const InterfaceIterator = struct {
     interfaces: []const clibusb.libusb_interface,
     i: usize,
 
-    pub fn next(self: *Interfaces) ?Interface {
+    pub fn next(self: *InterfaceIterator) ?Interface {
         if (self.i < self.interfaces.len) {
             defer self.i += 1;
 

@@ -34,15 +34,16 @@ const zusb = @import("zusb");
 // }
 
 pub fn main() !void {
-
-
     var ctx = try zusb.Context.init();
+    defer ctx.deinit();
 
-    const devices = try zusb.DeviceList.init(&ctx);
+    const devices = try zusb.Device.List.init(&ctx);
     defer devices.deinit();
 
     var devices_list = devices.devices();
     while(devices_list.next()) |device| {
+        defer device.deinit();
+
         const device_descriptor = try device.deviceDescriptor();
         std.log.info("Bus {} Device {} ID {}:{} Port {}", .{
             device.busNumber(),
@@ -51,6 +52,29 @@ pub fn main() !void {
             device_descriptor.productId(),
             device.portNumber(),
         });
+
+        const config = try device.configDescriptor(0);
+        defer config.deinit();
+
+        var interfaces = config.interfaces();
+        while (interfaces.next()) |interface| {
+            var alt_settings = interface.descriptors();
+            while (alt_settings.next()) |alt| {
+                if (alt.descriptor.bNumEndpoints == 0) continue;
+
+                var endpoints = alt.endpointDescriptors();
+                while (endpoints.next()) |endpoint| {
+                    std.log.info("\tinterface {d} alt {d}: endpoint 0x{x:0>2} {t} {t}", .{
+                        interface.number(),
+                        alt.descriptor.bAlternateSetting,
+                        endpoint.address(),
+                        endpoint.direction(),
+                        endpoint.transferType(),
+                    });
+                }
+            }
+        }
+        std.debug.print("\n", .{});
 
     }
 }

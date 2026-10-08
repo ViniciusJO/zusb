@@ -1,7 +1,7 @@
 const clibusb = @import("libusb");
 const std = @import("std");
 const Allocator = std.mem.Allocator;
-const DeviceHandle = @import("device_handle.zig");
+const Device = @import("device.zig");
 const PacketDescriptor = @import("packet_descriptor.zig").PacketDescriptor;
 const PacketDescriptors = @import("packet_descriptor.zig").PacketDescriptors;
 
@@ -50,7 +50,7 @@ pub fn Transfer(comptime T: type) type {
 
         pub fn fillIsochronous(
             allocator: Allocator,
-            handle: *DeviceHandle,
+            handle: *Device.Handle,
             endpoint: u8,
             packet_size: u16,
             num_packets: u16,
@@ -110,7 +110,7 @@ pub fn Transfer(comptime T: type) type {
 
         pub fn fillInterrupt(
             allocator: *Allocator,
-            handle: *DeviceHandle,
+            handle: *Device.Handle,
             endpoint: u8,
             buffer_size: usize,
             callback: fn (*Self) void,

@@ -1,9 +1,12 @@
 const clibusb = @import("libusb");
 const ConfigDescriptor = @import("config_descriptor.zig");
 const Context = @import("context.zig");
-const DeviceDescriptor = @import("device_descriptor.zig");
-const DeviceHandle = @import("device_handle.zig");
 const fromLibusb = @import("constructor.zig").fromLibusb;
+
+pub const List = @import("device_list.zig");
+pub const Descriptor = @import("device_descriptor.zig");
+pub const Handle = @import("device_handle.zig");
+
 
 const err = @import("error.zig");
 
@@ -16,7 +19,7 @@ pub fn deinit(self: Self) void {
     _ = clibusb.libusb_unref_device(self.raw);
 }
 
-pub fn deviceDescriptor(self: Self) err.Error!DeviceDescriptor {
+pub fn deviceDescriptor(self: Self) err.Error!Descriptor {
     var descriptor: clibusb.libusb_device_descriptor = undefined;
 
     try err.failable(clibusb.libusb_get_device_descriptor(
@@ -24,7 +27,7 @@ pub fn deviceDescriptor(self: Self) err.Error!DeviceDescriptor {
         &descriptor,
     ));
 
-    return DeviceDescriptor{ .descriptor = descriptor };
+    return Descriptor{ .descriptor = descriptor };
 }
 
 pub fn configDescriptor(self: Self, config_index: u8) err.Error!ConfigDescriptor {
@@ -51,9 +54,9 @@ pub fn address(self: Self) u8 {
     return clibusb.libusb_get_device_address(self.raw);
 }
 
-pub fn open(self: Self) err.Error!DeviceHandle {
+pub fn open(self: Self) err.Error!Handle {
     var handle: ?*clibusb.libusb_device_handle = null;
     try err.failable(clibusb.libusb_open(self.raw, &handle));
 
-    return fromLibusb(DeviceHandle, .{ self.ctx, handle.? });
+    return fromLibusb(Handle, .{ self.ctx, handle.? });
 }

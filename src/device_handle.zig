@@ -30,6 +30,12 @@ pub fn claimInterface(self: *Self, iface: u8) err.Error!void {
     self.interfaces |= @as(u256, 1) << iface;
 }
 
+
+pub fn claimAutoDeatachableInterface(self: *Self, iface: u8) err.Error!void {
+    _ = clibusb.libusb_set_auto_detach_kernel_driver(self.raw, 1);
+    try self.claimInterface(iface);
+}
+
 pub fn releaseInterface(self: *Self, iface: u8) err.Error!void {
     try err.failable(clibusb.libusb_release_interface(self.raw, @as(c_int, iface)));
     self.interfaces &= ~(@as(u256, 1) << iface);

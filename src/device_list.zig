@@ -6,12 +6,12 @@ const fromLibusb = @import("constructor.zig").fromLibusb;
 
 const err = @import("error.zig");
 
-pub const Devices = struct {
+pub const Iterator = struct {
     ctx: *Context,
     devices: []?*clibusb.libusb_device,
     i: usize,
 
-    pub fn next(self: *Devices) ?Device {
+    pub fn next(self: *@This()) ?Device {
         if (self.i < self.devices.len) {
             defer self.i += 1;
             return fromLibusb(Device, .{ self.ctx, self.devices[self.i].? });
@@ -46,10 +46,11 @@ pub fn deinit(self: Self) void {
     clibusb.libusb_free_device_list(self.list, 1);
 }
 
-pub fn devices(self: Self) Devices {
-    return Devices{
+pub fn devices(self: Self) Iterator {
+    return Iterator{
         .ctx = self.ctx,
         .devices = self.list[0..self.len],
         .i = 0,
     };
 }
+

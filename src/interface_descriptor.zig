@@ -1,5 +1,6 @@
 const clibusb = @import("libusb");
 const EndpointDescriptor = @import("endpoint_descriptor.zig");
+const Interface = @import("interface_descriptor.zig");
 
 const Self = @This();
 
@@ -9,8 +10,8 @@ pub fn number(self: Self) u8 {
     return self.iter[0].bInterfaceNumber;
 }
 
-pub fn descriptors(self: Self) InterfaceDescriptors {
-    return InterfaceDescriptors{
+pub fn descriptors(self: Self) InterfaceDescriptorsIterator {
+    return InterfaceDescriptorsIterator{
         .iter = self.iter,
         .i = 0,
     };
@@ -41,11 +42,11 @@ pub const EndpointDescriptors = struct {
     }
 };
 
-pub const InterfaceDescriptors = struct {
+pub const InterfaceDescriptorsIterator = struct {
     iter: []const clibusb.libusb_interface_descriptor,
     i: usize,
 
-    pub fn next(self: *InterfaceDescriptors) ?InterfaceDescriptor {
+    pub fn next(self: *InterfaceDescriptorsIterator) ?InterfaceDescriptor {
         if (self.i < self.iter.len) {
             defer self.i += 1;
             return InterfaceDescriptor{ .descriptor = &self.iter[self.i] };
@@ -54,3 +55,4 @@ pub const InterfaceDescriptors = struct {
         }
     }
 };
+
