@@ -1,24 +1,24 @@
-const c = @import("c.zig");
+const clibusb = @import("libusb");
 const std = @import("std");
-const Interface = @import("interface_descriptor.zig").Interface;
+const Interface = @import("interface_descriptor.zig");
 
-pub const ConfigDescriptor = struct {
-    descriptor: *c.libusb_config_descriptor,
+const Self = @This();
 
-    pub fn deinit(self: ConfigDescriptor) void {
-        _ = c.libusb_free_config_descriptor(self.descriptor);
-    }
+descriptor: *clibusb.libusb_config_descriptor,
 
-    pub fn interfaces(self: ConfigDescriptor) Interfaces {
-        return Interfaces{
-            .interfaces = self.descriptor.*.interface[0..self.descriptor.*.bNumInterfaces],
-            .i = 0,
-        };
-    }
-};
+pub fn deinit(self: Self) void {
+    _ = clibusb.libusb_free_config_descriptor(self.descriptor);
+}
+
+pub fn interfaces(self: Self) Interfaces {
+    return Interfaces{
+        .interfaces = self.descriptor.*.interface[0..self.descriptor.*.bNumInterfaces],
+        .i = 0,
+    };
+}
 
 pub const Interfaces = struct {
-    interfaces: []const c.libusb_interface,
+    interfaces: []const clibusb.libusb_interface,
     i: usize,
 
     pub fn next(self: *Interfaces) ?Interface {

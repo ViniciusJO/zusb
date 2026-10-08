@@ -1,37 +1,37 @@
-const c = @import("c.zig");
+const clibusb = @import("libusb");
 const Direction = @import("fields.zig").Direction;
 const TransferType = @import("fields.zig").TransferType;
 
-pub const EndpointDescriptor = struct {
-    descriptor: *const c.libusb_endpoint_descriptor,
+const Self = @This();
 
-    pub fn direction(self: EndpointDescriptor) Direction {
-        return switch (self.descriptor.*.bEndpointAddress & c.LIBUSB_ENDPOINT_DIR_MASK) {
-            c.LIBUSB_ENDPOINT_OUT => Direction.Out,
-            c.LIBUSB_ENDPOINT_IN => Direction.In,
-            else => Direction.In,
-        };
-    }
+descriptor: *const clibusb.libusb_endpoint_descriptor,
 
-    pub fn transferType(self: EndpointDescriptor) TransferType {
-        return switch (self.descriptor.*.bmAttributes & c.LIBUSB_TRANSFER_TYPE_MASK) {
-            c.LIBUSB_TRANSFER_TYPE_CONTROL => TransferType.Control,
-            c.LIBUSB_TRANSFER_TYPE_ISOCHRONOUS => TransferType.Isochronous,
-            c.LIBUSB_TRANSFER_TYPE_BULK => TransferType.Bulk,
-            c.LIBUSB_TRANSFER_TYPE_INTERRUPT => TransferType.Interrupt,
-            else => TransferType.Interrupt,
-        };
-    }
+pub fn direction(self: Self) Direction {
+    return switch (self.descriptor.*.bEndpointAddress & clibusb.LIBUSB_ENDPOINT_DIR_MASK) {
+        clibusb.LIBUSB_ENDPOINT_OUT => Direction.Out,
+        clibusb.LIBUSB_ENDPOINT_IN => Direction.In,
+        else => Direction.In,
+    };
+}
 
-    pub fn number(self: EndpointDescriptor) u8 {
-        return self.descriptor.*.bEndpointAddress & 0x07;
-    }
+pub fn transferType(self: Self) TransferType {
+    return switch (self.descriptor.*.bmAttributes & clibusb.LIBUSB_TRANSFER_TYPE_MASK) {
+        clibusb.LIBUSB_TRANSFER_TYPE_CONTROL => TransferType.Control,
+        clibusb.LIBUSB_TRANSFER_TYPE_ISOCHRONOUS => TransferType.Isochronous,
+        clibusb.LIBUSB_TRANSFER_TYPE_BULK => TransferType.Bulk,
+        clibusb.LIBUSB_TRANSFER_TYPE_INTERRUPT => TransferType.Interrupt,
+        else => TransferType.Interrupt,
+    };
+}
 
-    pub fn address(self: EndpointDescriptor) u8 {
-        return self.descriptor.*.bEndpointAddress;
-    }
+pub fn number(self: Self) u8 {
+    return self.descriptor.*.bEndpointAddress & 0x07;
+}
 
-    pub fn interval(self: EndpointDescriptor) u8 {
-        return self.descriptor.*.bInterval;
-    }
-};
+pub fn address(self: Self) u8 {
+    return self.descriptor.*.bEndpointAddress;
+}
+
+pub fn interval(self: Self) u8 {
+    return self.descriptor.*.bInterval;
+}

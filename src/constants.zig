@@ -1,3 +1,3 @@
-const c = @import("c.zig");
+const clibusb = @import("libusb");
 
-pub const dt_hid = c.LIBUSB_DT_HID;
+pub const dt_hid = clibusb.LIBUSB_DT_HID;

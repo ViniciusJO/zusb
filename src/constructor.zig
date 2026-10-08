@@ -1,12 +1,12 @@
-const c = @import("c.zig");
+const clibusb = @import("libusb");
 const std = @import("std");
-const Device = @import("device.zig").Device;
-const DeviceHandle = @import("device_handle.zig").DeviceHandle;
+const Device = @import("device.zig");
+const DeviceHandle = @import("device_handle.zig");
 
 pub fn fromLibusb(comptime T: type, args: anytype) T {
     switch (T) {
         Device => {
-            _ = c.libusb_ref_device(args.@"1");
+            _ = clibusb.libusb_ref_device(args.@"1");
             return .{
                 .ctx = args.@"0",
                 .raw = args.@"1",

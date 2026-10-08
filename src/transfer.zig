@@ -1,7 +1,7 @@
-const c = @import("c.zig");
+const clibusb = @import("libusb");
 const std = @import("std");
 const Allocator = std.mem.Allocator;
-const DeviceHandle = @import("device_handle.zig").DeviceHandle;
+const DeviceHandle = @import("device_handle.zig");
 const PacketDescriptor = @import("packet_descriptor.zig").PacketDescriptor;
 const PacketDescriptors = @import("packet_descriptor.zig").PacketDescriptors;
 
@@ -14,14 +14,14 @@ pub fn Transfer(comptime T: type) type {
 
         allocator: Allocator,
         buf: []u8,
-        transfer: *c.libusb_transfer,
+        transfer: *clibusb.libusb_transfer,
         callback: *const fn (*T, []const u8) void,
         user_data: *T,
         active: bool,
         should_resubmit: bool = true,
 
         pub fn deinit(self: *const Self) void {
-            c.libusb_free_transfer(self.transfer);
+            clibusb.libusb_free_transfer(self.transfer);
             self.allocator.free(self.buf);
             self.allocator.destroy(self);
         }
@@ -31,12 +31,12 @@ pub fn Transfer(comptime T: type) type {
                 return;
             }
             self.active = true;
-            try err.failable(c.libusb_submit_transfer(self.transfer));
+            try err.failable(clibusb.libusb_submit_transfer(self.transfer));
         }
 
         pub fn cancel(self: *Self) err.Error!void {
             self.should_resubmit = false;
-            try err.failable(c.libusb_cancel_transfer(self.transfer));
+            try err.failable(clibusb.libusb_cancel_transfer(self.transfer));
         }
 
         pub fn buffer(self: Self) []u8 {
@@ -59,7 +59,7 @@ pub fn Transfer(comptime T: type) type {
             timeout: u64,
         ) !*Self {
             const buf = try allocator.alloc(u8, packet_size * num_packets);
-            const opt_transfer: ?*c.libusb_transfer = c.libusb_alloc_transfer(num_packets);
+            const opt_transfer: ?*clibusb.libusb_transfer = clibusb.libusb_alloc_transfer(num_packets);
 
             if (opt_transfer) |transfer| {
                 const self = try allocator.create(Self);
@@ -74,7 +74,7 @@ pub fn Transfer(comptime T: type) type {
 
                 transfer.*.dev_handle = handle.raw;
                 transfer.*.endpoint = endpoint;
-                transfer.*.type = c.LIBUSB_TRANSFER_TYPE_ISOCHRONOUS;
+                transfer.*.type = clibusb.LIBUSB_TRANSFER_TYPE_ISOCHRONOUS;
                 transfer.*.buffer = buf.ptr;
                 transfer.*.length = std.math.cast(c_int, buf.len) orelse @panic("Length too large");
                 transfer.*.num_iso_packets = std.math.cast(c_int, num_packets) orelse @panic("Number of packets too large");
@@ -82,7 +82,7 @@ pub fn Transfer(comptime T: type) type {
                 transfer.*.user_data = @ptrCast(self);
                 transfer.*.timeout = std.math.cast(c_uint, timeout) orelse @panic("Timeout too large");
 
-                c.libusb_set_iso_packet_lengths(transfer, packet_size);
+                clibusb.libusb_set_iso_packet_lengths(transfer, packet_size);
 
                 return self;
             } else {
@@ -90,10 +90,10 @@ pub fn Transfer(comptime T: type) type {
             }
         }
 
-        export fn callbackRawIso(transfer: [*c]c.libusb_transfer) void {
+        export fn callbackRawIso(transfer: [*c]clibusb.libusb_transfer) void {
             const self: *Self = @alignCast(@ptrCast(transfer.*.user_data.?));
             self.active = false;
-            if (transfer.*.status != c.LIBUSB_TRANSFER_COMPLETED) {
+            if (transfer.*.status != clibusb.LIBUSB_TRANSFER_COMPLETED) {
                 return;
             }
             const num_iso_packets: usize = @intCast(transfer.*.num_iso_packets);
@@ -119,12 +119,12 @@ pub fn Transfer(comptime T: type) type {
         ) (Allocator.err.Error || err.Error)!*Self {
             const buf = try allocator.alloc(u8, buffer_size);
 
-            const opt_transfer: ?*c.libusb_transfer = c.libusb_alloc_transfer(0);
+            const opt_transfer: ?*clibusb.libusb_transfer = clibusb.libusb_alloc_transfer(0);
 
             if (opt_transfer) |transfer| {
                 transfer.*.dev_handle = handle.handle;
                 transfer.*.endpoint = endpoint;
-                transfer.*.type = c.LIBUSB_TRANSFER_TYPE_INTERRUPT;
+                transfer.*.type = clibusb.LIBUSB_TRANSFER_TYPE_INTERRUPT;
                 transfer.*.timeout = std.math.cast(c_uint, timeout) orelse @panic("Timeout too large");
                 transfer.*.buffer = buf.ptr;
                 transfer.*.length = std.math.cast(c_int, buf.len) orelse @panic("Length too large");
@@ -146,7 +146,7 @@ pub fn Transfer(comptime T: type) type {
             }
         }
 
-        export fn callbackRaw(transfer: [*c]c.libusb_transfer) void {
+        export fn callbackRaw(transfer: [*c]clibusb.libusb_transfer) void {
             const self: *Self = @alignCast(@ptrCast(transfer.*.user_data.?));
             self.callback(self.user_data, self.buffer());
         }
